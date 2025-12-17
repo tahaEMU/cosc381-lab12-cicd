@@ -45,6 +45,17 @@ class Server:
             """Return basic health probe result."""
             return "Presidio Anonymizer service is up"
 
+        @self.app.route("/genz-preview", methods=["GET"])
+        def genz_preview() -> Response:
+            """Return an example output of the genz anonymizer."""
+            return jsonify(
+                {
+                    "example": "Call Emily at 577-988-1234",
+                    "example_output": "Call GOAT at vibe check",
+                    "description": "Example output of the genz anonymizer.",
+                }
+            )
+
         @self.app.route("/anonymize", methods=["POST"])
         def anonymize() -> Response:
             content = request.get_json()
@@ -67,6 +78,28 @@ class Server:
             )
             return Response(anoymizer_result.to_json(), mimetype="application/json")
 
+        @self.app.route("/genz", methods=["POST"])
+        def genz() -> Response:
+            """Apply genz anonymizer operator."""
+            content = request.get_json()
+            if not content:
+                raise BadRequest("Invalid request json")
+
+            analyzer_results = AppEntitiesConvertor.analyzer_results_from_json(
+                content.get("analyzer_results")
+            )
+
+            anonymizers_config = AppEntitiesConvertor.operators_config_from_json(
+                {"DEFAULT": {"type": "genz"}}
+            )
+
+            anonymized_result = self.anonymizer.anonymize(
+                text=content.get("text", ""),
+                analyzer_results=analyzer_results,
+                operators=anonymizers_config,
+            )
+            return Response(anonymized_result.to_json(), mimetype="application/json")
+
         @self.app.route("/deanonymize", methods=["POST"])
         def deanonymize() -> Response:
             content = request.get_json()
@@ -83,7 +116,8 @@ class Server:
                 text=text, entities=deanonymize_entities, operators=deanonymize_config
             )
             return Response(
-                deanonymized_response.to_json(), mimetype="application/json"
+                deanonymized_response.to_json(),
+                mimetype="application/json",
             )
 
         @self.app.route("/anonymizers", methods=["GET"])
@@ -112,9 +146,11 @@ class Server:
             self.logger.error(f"A fatal error occurred during execution: {e}")
             return jsonify(error="Internal server error"), 500
 
-def create_app(): # noqa
+
+def create_app():  # noqa
     server = Server()
     return server.app
+
 
 if __name__ == "__main__":
     app = create_app()
