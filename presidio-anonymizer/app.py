@@ -115,7 +115,10 @@ class Server:
             deanonymized_response = self.deanonymize.deanonymize(
                 text=text, entities=deanonymize_entities, operators=deanonymize_config
             )
-            return Response(deanonymized_response.to_json(), mimetype="application/json")
+            return Response(
+                deanonymized_response.to_json(),
+                mimetype="application/json",
+            )
 
         @self.app.route("/anonymizers", methods=["GET"])
         def anonymizers():
