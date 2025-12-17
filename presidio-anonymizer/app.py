@@ -44,7 +44,7 @@ class Server:
         def health() -> str:
             """Return basic health probe result."""
             return "Presidio Anonymizer service is up"
-        
+
         @self.app.route("/genz-preview", methods=["GET"])
         def genz_preview() -> Response:
             """Return an example output of the genz anonymizer."""
@@ -55,7 +55,6 @@ class Server:
                     "description": "Example output of the genz anonymizer.",
                 }
             )
-
 
         @self.app.route("/anonymize", methods=["POST"])
         def anonymize() -> Response:
@@ -90,15 +89,16 @@ class Server:
                 content.get("analyzer_results")
             )
 
-            operators_config = {"DEFAULT": {"type": "genz"}}
+            anonymizers_config = AppEntitiesConvertor.operators_config_from_json(
+                {"DEFAULT": {"type": "genz"}}
+            )
 
             anonymized_result = self.anonymizer.anonymize(
                 text=content.get("text", ""),
                 analyzer_results=analyzer_results,
-                operators=operators_config,
+                operators=anonymizers_config,
             )
             return Response(anonymized_result.to_json(), mimetype="application/json")
-
 
         @self.app.route("/deanonymize", methods=["POST"])
         def deanonymize() -> Response:
@@ -115,9 +115,7 @@ class Server:
             deanonymized_response = self.deanonymize.deanonymize(
                 text=text, entities=deanonymize_entities, operators=deanonymize_config
             )
-            return Response(
-                deanonymized_response.to_json(), mimetype="application/json"
-            )
+            return Response(deanonymized_response.to_json(), mimetype="application/json")
 
         @self.app.route("/anonymizers", methods=["GET"])
         def anonymizers():
@@ -145,9 +143,11 @@ class Server:
             self.logger.error(f"A fatal error occurred during execution: {e}")
             return jsonify(error="Internal server error"), 500
 
-def create_app(): # noqa
+
+def create_app():  # noqa
     server = Server()
     return server.app
+
 
 if __name__ == "__main__":
     app = create_app()
