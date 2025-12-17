@@ -79,6 +79,27 @@ class Server:
             )
             return Response(anoymizer_result.to_json(), mimetype="application/json")
 
+        @self.app.route("/genz", methods=["POST"])
+        def genz() -> Response:
+            """Apply genz anonymizer operator."""
+            content = request.get_json()
+            if not content:
+                raise BadRequest("Invalid request json")
+
+            analyzer_results = AppEntitiesConvertor.analyzer_results_from_json(
+                content.get("analyzer_results")
+            )
+
+            operators_config = {"DEFAULT": {"type": "genz"}}
+
+            anonymized_result = self.anonymizer.anonymize(
+                text=content.get("text", ""),
+                analyzer_results=analyzer_results,
+                operators=operators_config,
+            )
+            return Response(anonymized_result.to_json(), mimetype="application/json")
+
+
         @self.app.route("/deanonymize", methods=["POST"])
         def deanonymize() -> Response:
             content = request.get_json()
