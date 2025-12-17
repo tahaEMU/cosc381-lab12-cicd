@@ -57,16 +57,6 @@ class Server:
             )
 
 
-
-        @self.app.route("/anonymize", methods=["POST"])
-        def anonymize() -> Response:
-            content = request.get_json()
-            if not content:
-                raise BadRequest("Invalid request json")
-            
-
-
-
         @self.app.route("/anonymize", methods=["POST"])
         def anonymize() -> Response:
             content = request.get_json()
