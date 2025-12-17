@@ -51,10 +51,21 @@ class Server:
             return jsonify(
                 {
                     "example": "Call Emily at 577-988-1234",
-                    "example_output": "Call GOAT at vibe check",
+                    "example output": "Call GOAT at vibe check",
                     "description": "Example output of the genz anonymizer.",
                 }
             )
+
+
+
+        @self.app.route("/anonymize", methods=["POST"])
+        def anonymize() -> Response:
+            content = request.get_json()
+            if not content:
+                raise BadRequest("Invalid request json")
+            
+
+
 
         @self.app.route("/anonymize", methods=["POST"])
         def anonymize() -> Response:
